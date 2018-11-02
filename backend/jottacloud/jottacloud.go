@@ -24,6 +24,7 @@ import (
 	"github.com/ncw/rclone/fs/config/configmap"
 	"github.com/ncw/rclone/fs/config/configstruct"
 	"github.com/ncw/rclone/fs/config/obscure"
+	"github.com/ncw/rclone/fs/encodings"
 	"github.com/ncw/rclone/fs/fserrors"
 	"github.com/ncw/rclone/fs/fshttp"
 	"github.com/ncw/rclone/fs/hash"
@@ -34,6 +35,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
+
+const enc = encodings.JottaCloud
 
 // Globals
 const (
@@ -384,7 +387,7 @@ func urlPathEscape(in string) string {
 
 // filePathRaw returns an unescaped file path (f.root, file)
 func (f *Fs) filePathRaw(file string) string {
-	return path.Join(f.endpointURL, replaceReservedChars(path.Join(f.root, file)))
+	return path.Join(f.endpointURL, enc.FromStandardPath(path.Join(f.root, file)))
 }
 
 // filePath returns a escaped file path (f.root, file)
@@ -604,7 +607,7 @@ func (f *Fs) List(dir string) (entries fs.DirEntries, err error) {
 		if item.Deleted {
 			continue
 		}
-		remote := path.Join(dir, restoreReservedChars(item.Name))
+		remote := path.Join(dir, enc.ToStandardName(item.Name))
 		d := fs.NewDir(remote, time.Time(item.ModifiedAt))
 		entries = append(entries, d)
 	}
@@ -614,7 +617,7 @@ func (f *Fs) List(dir string) (entries fs.DirEntries, err error) {
 		if item.Deleted || item.State != "COMPLETED" {
 			continue
 		}
-		remote := path.Join(dir, restoreReservedChars(item.Name))
+		remote := path.Join(dir, enc.ToStandardName(item.Name))
 		o, err := f.newObjectWithInfo(remote, item)
 		if err != nil {
 			continue
@@ -640,7 +643,7 @@ func (f *Fs) listFileDir(remoteStartPath string, startFolder *api.JottaFolder, f
 		if folder.Deleted {
 			return nil
 		}
-		folderPath := restoreReservedChars(path.Join(folder.Path, folder.Name))
+		folderPath := enc.ToStandardPath(path.Join(folder.Path, folder.Name))
 		folderPathLength := len(folderPath)
 		var remoteDir string
 		if folderPathLength > pathPrefixLength {
@@ -658,7 +661,7 @@ func (f *Fs) listFileDir(remoteStartPath string, startFolder *api.JottaFolder, f
 			if file.Deleted || file.State != "COMPLETED" {
 				continue
 			}
-			remoteFile := path.Join(remoteDir, restoreReservedChars(file.Name))
+			remoteFile := path.Join(remoteDir, enc.ToStandardName(file.Name))
 			o, err := f.newObjectWithInfo(remoteFile, file)
 			if err != nil {
 				return err
@@ -842,7 +845,7 @@ func (f *Fs) copyOrMove(method, src, dest string) (info *api.JottaFile, err erro
 		Parameters: url.Values{},
 	}
 
-	opts.Parameters.Set(method, "/"+path.Join(f.endpointURL, replaceReservedChars(path.Join(f.root, dest))))
+	opts.Parameters.Set(method, "/"+path.Join(f.endpointURL, enc.FromStandardPath(path.Join(f.root, dest))))
 
 	var resp *http.Response
 	err = f.pacer.Call(func() (bool, error) {
@@ -949,7 +952,7 @@ func (f *Fs) DirMove(src fs.Fs, srcRemote, dstRemote string) error {
 		return fs.ErrorDirExists
 	}
 
-	_, err = f.copyOrMove("mvDir", path.Join(f.endpointURL, replaceReservedChars(srcPath))+"/", dstRemote)
+	_, err = f.copyOrMove("mvDir", path.Join(f.endpointURL, enc.FromStandardPath(srcPath))+"/", dstRemote)
 
 	if err != nil {
 		return errors.Wrap(err, "couldn't move directory")
@@ -1233,7 +1236,7 @@ func (o *Object) Update(in io.Reader, src fs.ObjectInfo, options ...fs.OpenOptio
 		Created:  fileDate,
 		Modified: fileDate,
 		Md5:      md5String,
-		Path:     path.Join(o.fs.opt.Mountpoint, replaceReservedChars(path.Join(o.fs.root, o.remote))),
+		Path:     path.Join(o.fs.opt.Mountpoint, enc.ToStandardPath(path.Join(o.fs.root, o.remote))),
 	}
 
 	// send it
