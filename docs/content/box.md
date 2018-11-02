@@ -216,6 +216,26 @@ not.
 Box supports SHA1 type hashes, so you can use the `--checksum`
 flag.
 
+#### Restricted filename characters
+
+In addition to the [default restricted characters set](/overview/#restricted-characters)
+the following characters are also replaced:
+
+| Character | Value | Replacement |
+| --------- |:-----:|:-----------:|
+| \         | 0x5C  | ＼           |
+
+File names can also not end with the following characters.
+These only get replaced if they are last character in the name:
+
+| Character | Value | Replacement |
+| --------- |:-----:|:-----------:|
+| SP        | 0x20  | ␠           |
+
+Invalid UTF-8 bytes will also be replaced with a quoted representation,
+as they can't be used in JSON strings. For example, the invalid byte
+`0xFE` will be encoded as `‛FE`.
+
 ### Transfers ###
 
 For files above 50MB rclone will use a chunked transfer.  Rclone will

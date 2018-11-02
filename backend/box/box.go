@@ -26,6 +26,7 @@ import (
 	"github.com/ncw/rclone/fs/config/configmap"
 	"github.com/ncw/rclone/fs/config/configstruct"
 	"github.com/ncw/rclone/fs/config/obscure"
+	"github.com/ncw/rclone/fs/encodings"
 	"github.com/ncw/rclone/fs/fserrors"
 	"github.com/ncw/rclone/fs/hash"
 	"github.com/ncw/rclone/lib/dircache"
@@ -35,6 +36,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
+
+const enc = encodings.Box
 
 const (
 	rcloneClientID              = "d0374ba6pgmaguie02ge15sv1mllndho"
@@ -178,18 +181,6 @@ func shouldRetry(resp *http.Response, err error) (bool, error) {
 		fs.Debugf(nil, "Should retry: %v", err)
 	}
 	return authRetry || fserrors.ShouldRetry(err) || fserrors.ShouldRetryHTTP(resp, retryErrorCodes), err
-}
-
-// substitute reserved characters for box
-func replaceReservedChars(x string) string {
-	// Backslash for FULLWIDTH REVERSE SOLIDUS
-	return strings.Replace(x, "\\", "＼", -1)
-}
-
-// restore reserved characters for box
-func restoreReservedChars(x string) string {
-	// FULLWIDTH REVERSE SOLIDUS for Backslash
-	return strings.Replace(x, "＼", "\\", -1)
 }
 
 // readMetaDataForPath reads the metadata from the path
@@ -378,7 +369,7 @@ func (f *Fs) CreateDir(pathID, leaf string) (newID string, err error) {
 		Parameters: fieldsValue(),
 	}
 	mkdir := api.CreateFolder{
-		Name: replaceReservedChars(leaf),
+		Name: enc.FromStandardName(leaf),
 		Parent: api.Parent{
 			ID: pathID,
 		},
@@ -444,7 +435,7 @@ OUTER:
 			if item.ItemStatus != api.ItemStatusActive {
 				continue
 			}
-			item.Name = restoreReservedChars(item.Name)
+			item.Name = enc.ToStandardName(item.Name)
 			if fn(item) {
 				found = true
 				break OUTER
@@ -680,9 +671,8 @@ func (f *Fs) Copy(src fs.Object, remote string) (fs.Object, error) {
 		Path:       "/files/" + srcObj.id + "/copy",
 		Parameters: fieldsValue(),
 	}
-	replacedLeaf := replaceReservedChars(leaf)
 	copyFile := api.CopyFile{
-		Name: replacedLeaf,
+		Name: enc.FromStandardName(leaf),
 		Parent: api.Parent{
 			ID: directoryID,
 		},
@@ -721,7 +711,7 @@ func (f *Fs) move(endpoint, id, leaf, directoryID string) (info *api.Item, err e
 		Parameters: fieldsValue(),
 	}
 	move := api.UpdateFileMove{
-		Name: replaceReservedChars(leaf),
+		Name: enc.FromStandardName(leaf),
 		Parent: api.Parent{
 			ID: directoryID,
 		},
@@ -922,11 +912,6 @@ func (o *Object) Remote() string {
 	return o.remote
 }
 
-// srvPath returns a path for use in server
-func (o *Object) srvPath() string {
-	return replaceReservedChars(o.fs.rootSlash() + o.remote)
-}
-
 // Hash returns the SHA-1 of an object returning a lowercase hex string
 func (o *Object) Hash(t hash.Type) (string, error) {
 	if t != hash.SHA1 {
@@ -1051,7 +1036,7 @@ func (o *Object) Open(options ...fs.OpenOption) (in io.ReadCloser, err error) {
 // This is recommended for less than 50 MB of content
 func (o *Object) upload(in io.Reader, leaf, directoryID string, modTime time.Time) (err error) {
 	upload := api.UploadFile{
-		Name:              replaceReservedChars(leaf),
+		Name:              enc.FromStandardName(leaf),
 		ContentModifiedAt: api.Time(modTime),
 		ContentCreatedAt:  api.Time(modTime),
 		Parent: api.Parent{
