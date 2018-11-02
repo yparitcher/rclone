@@ -43,11 +43,16 @@ import (
 	"github.com/ncw/rclone/fs/fshttp"
 	"github.com/ncw/rclone/fs/hash"
 	"github.com/ncw/rclone/fs/walk"
+	"github.com/ncw/rclone/lib/encoder"
 	"github.com/ncw/rclone/lib/pacer"
 	"github.com/ncw/rclone/lib/rest"
 	"github.com/ncw/swift"
 	"github.com/pkg/errors"
 )
+
+const enc = encoder.MultiEncoder( //nolint
+	encoder.EncodeStandard |
+		encoder.EncodeInvalidUtf8)
 
 // Register with Fs
 func init() {
