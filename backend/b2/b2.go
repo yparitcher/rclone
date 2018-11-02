@@ -24,6 +24,7 @@ import (
 	"github.com/ncw/rclone/fs/accounting"
 	"github.com/ncw/rclone/fs/config/configmap"
 	"github.com/ncw/rclone/fs/config/configstruct"
+	"github.com/ncw/rclone/fs/encodings"
 	"github.com/ncw/rclone/fs/fserrors"
 	"github.com/ncw/rclone/fs/fshttp"
 	"github.com/ncw/rclone/fs/hash"
@@ -32,6 +33,8 @@ import (
 	"github.com/ncw/rclone/lib/rest"
 	"github.com/pkg/errors"
 )
+
+const enc = encodings.B2 //nolint
 
 const (
 	defaultEndpoint     = "https://api.backblazeb2.com"
