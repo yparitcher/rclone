@@ -26,6 +26,7 @@ import (
 	"github.com/ncw/rclone/fs/config/configmap"
 	"github.com/ncw/rclone/fs/config/configstruct"
 	"github.com/ncw/rclone/fs/config/obscure"
+	"github.com/ncw/rclone/fs/encodings"
 	"github.com/ncw/rclone/fs/fserrors"
 	"github.com/ncw/rclone/fs/hash"
 	"github.com/ncw/rclone/lib/dircache"
@@ -35,6 +36,8 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
+
+const enc = encodings.Pcloud //nolint
 
 const (
 	rcloneClientID              = "DnONSzyJXpm"
