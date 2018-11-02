@@ -85,7 +85,6 @@ type Item struct {
 	Hashes  map[hash.Type]string
 	ModTime time.Time
 	Size    int64
-	WinPath string
 }
 
 // NewItem creates an item from a string content
@@ -178,7 +177,6 @@ func NewItems(items []Item) *Items {
 	// Fill up byName
 	for i := range items {
 		is.byName[Normalize(items[i].Path)] = &items[i]
-		is.byNameAlt[Normalize(items[i].WinPath)] = &items[i]
 	}
 	return is
 }
@@ -193,7 +191,6 @@ func (is *Items) Find(t *testing.T, obj fs.Object, precision time.Duration) {
 	}
 	if i != nil {
 		delete(is.byName, i.Path)
-		delete(is.byName, i.WinPath)
 		i.Check(t, obj, precision)
 	}
 }
@@ -211,21 +208,14 @@ func (is *Items) Done(t *testing.T) {
 // makeListingFromItems returns a string representation of the items
 //
 // it returns two possible strings, one normal and one for windows
-func makeListingFromItems(items []Item) (string, string) {
-	nameLengths1 := make([]string, len(items))
-	nameLengths2 := make([]string, len(items))
+func makeListingFromItems(items []Item) string {
+	nameLengths := make([]string, len(items))
 	for i, item := range items {
-		remote1 := Normalize(item.Path)
-		remote2 := remote1
-		if item.WinPath != "" {
-			remote2 = item.WinPath
-		}
-		nameLengths1[i] = fmt.Sprintf("%s (%d)", remote1, item.Size)
-		nameLengths2[i] = fmt.Sprintf("%s (%d)", remote2, item.Size)
+		remote := Normalize(item.Path)
+		nameLengths[i] = fmt.Sprintf("%s (%d)", remote, item.Size)
 	}
-	sort.Strings(nameLengths1)
-	sort.Strings(nameLengths2)
-	return strings.Join(nameLengths1, ", "), strings.Join(nameLengths2, ", ")
+	sort.Strings(nameLengths)
+	return strings.Join(nameLengths, ", ")
 }
 
 // makeListingFromObjects returns a string representation of the objects
@@ -279,7 +269,7 @@ func CheckListingWithPrecision(t *testing.T, f fs.Fs, items []Item, expectedDirs
 	var err error
 	var retries = *ListRetries
 	sleep := time.Second / 2
-	wantListing1, wantListing2 := makeListingFromItems(items)
+	wantListing := makeListingFromItems(items)
 	gotListing := "<unset>"
 	listingOK := false
 	for i := 1; i <= retries; i++ {
@@ -289,7 +279,7 @@ func CheckListingWithPrecision(t *testing.T, f fs.Fs, items []Item, expectedDirs
 		}
 
 		gotListing = makeListingFromObjects(objs)
-		listingOK = wantListing1 == gotListing || wantListing2 == gotListing
+		listingOK = wantListing == gotListing
 		if listingOK && (expectedDirs == nil || len(dirs) == len(expectedDirs)) {
 			// Put an extra sleep in if we did any retries just to make sure it really
 			// is consistent (here is looking at you Amazon Drive!)
@@ -308,7 +298,7 @@ func CheckListingWithPrecision(t *testing.T, f fs.Fs, items []Item, expectedDirs
 			doDirCacheFlush()
 		}
 	}
-	assert.True(t, listingOK, fmt.Sprintf("listing wrong, want\n  %s or\n  %s got\n  %s", wantListing1, wantListing2, gotListing))
+	assert.True(t, listingOK, fmt.Sprintf("listing wrong, want\n  %s got\n  %s", wantListing, gotListing))
 	for _, obj := range objs {
 		require.NotNil(t, obj)
 		is.Find(t, obj, precision)

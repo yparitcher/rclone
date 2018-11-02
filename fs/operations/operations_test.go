@@ -1068,7 +1068,6 @@ func TestDirMove(t *testing.T) {
 
 	for i := range files {
 		files[i].Path = strings.Replace(files[i].Path, "A1/", "A2/", -1)
-		files[i].WinPath = ""
 	}
 
 	fstest.CheckListingWithPrecision(
@@ -1098,7 +1097,6 @@ func TestDirMove(t *testing.T) {
 
 	for i := range files {
 		files[i].Path = strings.Replace(files[i].Path, "A2/", "A3/", -1)
-		files[i].WinPath = ""
 	}
 
 	fstest.CheckListingWithPrecision(
