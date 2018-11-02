@@ -148,6 +148,71 @@ Sharepoint Server support
 
 For all types of OneDrive you can use the `--checksum` flag.
 
+#### Restricted filename characters
+
+| Character | Value | Replacement |
+| --------- |:-----:|:-----------:|
+| NUL       | 0x00  | ␀           |
+| SOH       | 0x01  | ␁           |
+| STX       | 0x02  | ␂           |
+| ETX       | 0x03  | ␃           |
+| EOT       | 0x04  | ␄           |
+| ENQ       | 0x05  | ␅           |
+| ACK       | 0x06  | ␆           |
+| BEL       | 0x07  | ␇           |
+| BS        | 0x08  | ␈           |
+| HT        | 0x09  | ␉           |
+| LF        | 0x0A  | ␊           |
+| VT        | 0x0B  | ␋           |
+| FF        | 0x0C  | ␌           |
+| CR        | 0x0D  | ␍           |
+| SO        | 0x0E  | ␎           |
+| SI        | 0x0F  | ␏           |
+| DLE       | 0x10  | ␐           |
+| DC1       | 0x11  | ␑           |
+| DC2       | 0x12  | ␒           |
+| DC3       | 0x13  | ␓           |
+| DC4       | 0x14  | ␔           |
+| NAK       | 0x15  | ␕           |
+| SYN       | 0x16  | ␖           |
+| ETB       | 0x17  | ␗           |
+| CAN       | 0x18  | ␘           |
+| EM        | 0x19  | ␙           |
+| SUB       | 0x1A  | ␚           |
+| ESC       | 0x1B  | ␛           |
+| FS        | 0x1C  | ␜           |
+| GS        | 0x1D  | ␝           |
+| RS        | 0x1E  | ␞           |
+| US        | 0x1F  | ␟           |
+| /         | 0x2F  | ／          |
+| "         | 0x22  | ＂          |
+| *         | 0x2A  | ＊          |
+| :         | 0x3A  | ：          |
+| <         | 0x3C  | ＜          |
+| >         | 0x3E  | ＞          |
+| ?         | 0x3F  | ？          |
+| \         | 0x5C  | ＼          |
+| \|        | 0x7C  | ｜          |
+| DEL       | 0x7F  | ␡           |
+| #         | 0x23  | ＃          |
+| %         | 0x25  | ％          |
+
+File names can also not end with the following characters.
+These only get replaced if they are last character in the name:
+
+| Character | Value | Replacement |
+| --------- |:-----:|:-----------:|
+| SP        | 0x20  | ␠           |
+| .         | 0x2E  | ．          |
+
+File names can also not begin with the following characters.
+These only get replaced if they are first character in the name:
+
+| Character | Value | Replacement |
+| --------- |:-----:|:-----------:|
+| SP        | 0x20  | ␠           |
+| ~         | 0x7E  | ～          |
+
 ### Deleting files ###
 
 Any files you delete with rclone will end up in the trash.  Microsoft
