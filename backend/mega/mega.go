@@ -27,6 +27,7 @@ import (
 	"github.com/ncw/rclone/fs/config/configmap"
 	"github.com/ncw/rclone/fs/config/configstruct"
 	"github.com/ncw/rclone/fs/config/obscure"
+	"github.com/ncw/rclone/fs/encodings"
 	"github.com/ncw/rclone/fs/fshttp"
 	"github.com/ncw/rclone/fs/hash"
 	"github.com/ncw/rclone/lib/pacer"
@@ -34,6 +35,8 @@ import (
 	"github.com/pkg/errors"
 	mega "github.com/t3rm1n4l/go-mega"
 )
+
+const enc = encodings.Mega //nolint
 
 const (
 	minSleep      = 10 * time.Millisecond
