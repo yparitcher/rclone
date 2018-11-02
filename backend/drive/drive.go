@@ -30,6 +30,7 @@ import (
 	"github.com/ncw/rclone/fs/config/configmap"
 	"github.com/ncw/rclone/fs/config/configstruct"
 	"github.com/ncw/rclone/fs/config/obscure"
+	"github.com/ncw/rclone/fs/encodings"
 	"github.com/ncw/rclone/fs/fserrors"
 	"github.com/ncw/rclone/fs/fshttp"
 	"github.com/ncw/rclone/fs/hash"
@@ -45,6 +46,8 @@ import (
 	drive "google.golang.org/api/drive/v3"
 	"google.golang.org/api/googleapi"
 )
+
+const enc = encodings.Drive
 
 // Constants
 const (
@@ -577,11 +580,10 @@ func (f *Fs) list(dirIDs []string, title string, directoriesOnly, filesOnly, inc
 	}
 	var stems []string
 	if title != "" {
+		searchTitle := enc.FromStandardName(title)
 		// Escaping the backslash isn't documented but seems to work
-		searchTitle := strings.Replace(title, `\`, `\\`, -1)
+		searchTitle = strings.Replace(searchTitle, `\`, `\\`, -1)
 		searchTitle = strings.Replace(searchTitle, `'`, `\'`, -1)
-		// Convert ／ to / for search
-		searchTitle = strings.Replace(searchTitle, "／", "/", -1)
 
 		var titleQuery bytes.Buffer
 		_, _ = fmt.Fprintf(&titleQuery, "(name='%s'", searchTitle)
@@ -646,11 +648,9 @@ OUTER:
 			return false, errors.Wrap(err, "couldn't list directory")
 		}
 		for _, item := range files.Files {
-			// Convert / to ／ for listing purposes
-			item.Name = strings.Replace(item.Name, "/", "／", -1)
+			item.Name = enc.ToStandardName(item.Name)
 			// Check the case of items is correct since
 			// the `=` operator is case insensitive.
-
 			if title != "" && title != item.Name {
 				found := false
 				for _, stem := range stems {
@@ -1180,6 +1180,7 @@ func (f *Fs) FindLeaf(pathID, leaf string) (pathIDOut string, found bool, err er
 
 // CreateDir makes a directory with pathID as parent and name leaf
 func (f *Fs) CreateDir(pathID, leaf string) (newID string, err error) {
+	leaf = enc.FromStandardName(leaf)
 	// fmt.Println("Making", path)
 	// Define the metadata for the directory we are going to create.
 	createInfo := &drive.File{
@@ -1615,6 +1616,7 @@ func (f *Fs) createFileInfo(remote string, modTime time.Time) (*drive.File, erro
 		return nil, err
 	}
 
+	leaf = enc.FromStandardName(leaf)
 	// Define the metadata for the file we are going to create.
 	createInfo := &drive.File{
 		Name:         leaf,
@@ -2306,6 +2308,7 @@ func (f *Fs) changeNotifyRunner(notifyFunc func(string, fs.EntryType), startPage
 
 			// find the new path
 			if change.File != nil {
+				change.File.Name = enc.ToStandardName(change.File.Name)
 				changeType := fs.EntryDirectory
 				if change.File.MimeType != driveFolderType {
 					changeType = fs.EntryObject

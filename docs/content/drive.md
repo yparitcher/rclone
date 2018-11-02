@@ -355,6 +355,12 @@ large folder (10600 directories, 39000 files):
 
 Google drive stores modification times accurate to 1 ms.
 
+#### Restricted filename characters
+
+Only invalid UTF-8 bytes will be replaced with a quoted representation,
+as they can't be used in JSON strings. For example, the invalid byte
+`0xFE` will be encoded as `‛FE`.
+
 ### Revisions ###
 
 Google drive stores revisions of files.  When you upload a change to
