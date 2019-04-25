@@ -116,7 +116,7 @@ func (f *File) rename(destDir *Dir, newName string) error {
 	}
 
 	renameCall := func() error {
-		newPath := path.Join(destDir.path, newName)
+		newPath := f.d.vfs.enc.ToStandardPath(path.Join(destDir.path, newName))
 		dstOverwritten, _ := f.d.f.NewObject(newPath)
 		newObject, err := operations.Move(f.d.f, dstOverwritten, newPath, f.o)
 		if err != nil {
@@ -135,7 +135,7 @@ func (f *File) rename(destDir *Dir, newName string) error {
 		f.mu.Lock()
 		f.o = newObject
 		f.d = destDir
-		f.leaf = path.Base(newObject.Remote())
+		f.leaf = f.d.vfs.enc.FromStandardName(path.Base(newObject.Remote()))
 		f.pendingRenameFun = nil
 		f.mu.Unlock()
 		return nil
