@@ -107,6 +107,10 @@ func (mask MultiEncoder) Encode(in string) string {
 			return "．"
 		case "..":
 			return "．．"
+		case "．":
+			return string(QuoteRune) + "．"
+		case "．．":
+			return string(QuoteRune) + "．" + string(QuoteRune) + "．"
 		}
 	}
 
@@ -324,6 +328,10 @@ func (mask MultiEncoder) Decode(in string) string {
 			return "."
 		case "．．":
 			return ".."
+		case string(QuoteRune) + "．":
+			return "．"
+		case string(QuoteRune) + "．" + string(QuoteRune) + "．":
+			return "．．"
 		}
 	}
 
