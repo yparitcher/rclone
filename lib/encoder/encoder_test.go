@@ -184,7 +184,7 @@ func TestDecodeHalf(t *testing.T) {
 }
 
 const oneDrive = MultiEncoder(
-	EncodeStandard |
+	uint(Standard) |
 		EncodeWin |
 		EncodeBackSlash |
 		EncodeHashPercent |

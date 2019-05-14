@@ -29,14 +29,6 @@ const (
 	symbolOffset = '␀' // SYMBOL FOR NULL
 	// QuoteRune is the rune used for quoting reserved characters
 	QuoteRune = '‛' // SINGLE HIGH-REVERSED-9 QUOTATION MARK
-	// EncodeStandard contains the flags used for the Standard Encoder
-	EncodeStandard = EncodeZero | EncodeSlash | EncodeCtl | EncodeDel | EncodeDot
-	// Standard defines the encoding that is used for paths in- and output by rclone.
-	//
-	// List of replaced characters:
-	//     (0x00)  -> '␀' // SYMBOL FOR NULL
-	//   / (slash) -> '／' // FULLWIDTH SOLIDUS
-	Standard = MultiEncoder(EncodeStandard)
 )
 
 // Possible flags for the MultiEncoder

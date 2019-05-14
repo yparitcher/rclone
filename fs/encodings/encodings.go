@@ -1,3 +1,5 @@
+// +build !noencode
+
 package encodings
 
 import (
@@ -49,7 +51,11 @@ const LocalWindows = encoder.MultiEncoder(
 		encoder.EncodeInvalidUtf8)
 
 // AmazonCloudDrive is the encoding used by the amazonclouddrive backend
-const AmazonCloudDrive = Base
+//
+// Encode invalid UTF-8 bytes as json doesn't handle them properly.
+const AmazonCloudDrive = encoder.MultiEncoder(
+	uint(Base) |
+		encoder.EncodeInvalidUtf8)
 
 // B2 is the encoding used by the b2 backend
 //
@@ -93,12 +99,29 @@ const Dropbox = encoder.MultiEncoder(
 	uint(Base) |
 		encoder.EncodeBackSlash |
 		encoder.EncodeDel |
-		encoder.EncodeRightSpace)
+		encoder.EncodeRightSpace |
+		encoder.EncodeInvalidUtf8)
+
+// GoogleCloudStorage is the encoding used by the googlecloudstorage backend
+const GoogleCloudStorage = encoder.MultiEncoder(
+	uint(Base) |
+		//encoder.EncodeCrLF |
+		encoder.EncodeInvalidUtf8)
 
 // JottaCloud is the encoding used by the jottacloud backend
 //
-// TODO: Verify invalid UTF-8 bytes are transferred correctly by the xml package
-const JottaCloud = Display
+// Encode invalid UTF-8 bytes as xml doesn't handle them properly.
+const JottaCloud = encoder.MultiEncoder(
+	uint(Display) |
+		encoder.EncodeInvalidUtf8)
+
+// Koofr is the encoding used by the koofr backend
+//
+// Encode invalid UTF-8 bytes as json doesn't handle them properly.
+const Koofr = encoder.MultiEncoder(
+	uint(Display) |
+		encoder.EncodeBackSlash |
+		encoder.EncodeInvalidUtf8)
 
 // Mega is the encoding used by the mega backend
 //
@@ -150,7 +173,8 @@ const OneDrive = encoder.MultiEncoder(
 		encoder.EncodeLeftTilde |
 		encoder.EncodeRightPeriod |
 		encoder.EncodeRightSpace |
-		encoder.EncodeWin)
+		encoder.EncodeWin |
+		encoder.EncodeInvalidUtf8)
 
 // OpenDrive is the encoding used by the opendrive backend
 //
@@ -164,11 +188,25 @@ const OneDrive = encoder.MultiEncoder(
 //   ? (question mark) -> '？' // FULLWIDTH QUESTION MARK
 //   * (asterisk)      -> '＊' // FULLWIDTH ASTERISK
 //
+// Additionally names can't begin or end with a ASCII whitespace.
+// List of replaced characters:
+//     (space)           -> '␠'  // SYMBOL FOR SPACE
+//     (horizontal tab)  -> '␉'  // SYMBOL FOR HORIZONTAL TABULATION
+//     (line feed)       -> '␊'  // SYMBOL FOR LINE FEED
+//     (vertical tab)    -> '␋'  // SYMBOL FOR VERTICAL TABULATION
+//     (carriage return) -> '␍'  // SYMBOL FOR CARRIAGE RETURN
+//
+// Also encode invalid UTF-8 bytes as json doesn't handle them properly.
+//
 // https://www.opendrive.com/wp-content/uploads/guides/OpenDrive_API_guide.pdf
 const OpenDrive = encoder.MultiEncoder(
 	uint(Base) |
 		encoder.EncodeWin |
+		encoder.EncodeLeftCrLfHtVt |
+		encoder.EncodeRightCrLfHtVt |
 		encoder.EncodeBackSlash |
+		encoder.EncodeLeftSpace |
+		encoder.EncodeRightSpace |
 		encoder.EncodeInvalidUtf8)
 
 // Pcloud is the encoding used by the pcloud backend
@@ -187,8 +225,6 @@ func ByName(name string) encoder.Encoder {
 		return Base
 	case "display":
 		return Display
-	//case "alias":
-	//case "all":
 	case "amazonclouddrive":
 		return AmazonCloudDrive
 	//case "azureblob":
@@ -197,18 +233,19 @@ func ByName(name string) encoder.Encoder {
 	case "box":
 		return Box
 	//case "cache":
-	//case "crypt":
 	case "drive":
 		return Drive
 	case "dropbox":
 		return Dropbox
 	//case "ftp":
-	//case "googlecloudstorage":
+	case "googlecloudstorage":
+		return GoogleCloudStorage
 	//case "http":
 	//case "hubic":
 	case "jottacloud":
 		return JottaCloud
-	//case "koofr":
+	case "koofr":
+		return Koofr
 	case "local":
 		return Local()
 	case "local-windows", "windows":
@@ -227,7 +264,6 @@ func ByName(name string) encoder.Encoder {
 	//case "s3":
 	//case "sftp":
 	//case "swift":
-	//case "union":
 	//case "webdav":
 	//case "yandex":
 	default:
@@ -253,10 +289,12 @@ func Names() []string {
 		"box",
 		"drive",
 		"dropbox",
+		"googlecloudstorage",
 		"jottacloud",
-		"local",
-		"local-windows",
+		"koofr",
 		"local-unix",
+		"local-windows",
+		"local",
 		"mega",
 		"onedrive",
 		"opendrive",
