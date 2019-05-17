@@ -51,7 +51,7 @@ import (
 )
 
 const enc = encoder.MultiEncoder( //nolint
-	encoder.EncodeStandard |
+	uint(encoder.Standard) |
 		encoder.EncodeInvalidUtf8)
 
 // Register with Fs
