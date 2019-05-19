@@ -232,9 +232,8 @@ These only get replaced if they are last character in the name:
 | --------- |:-----:|:-----------:|
 | SP        | 0x20  | ␠           |
 
-Invalid UTF-8 bytes will also be replaced with a quoted representation,
-as they can't be used in JSON strings. For example, the invalid byte
-`0xFE` will be encoded as `‛FE`.
+Invalid UTF-8 bytes will also be [replaced](/overview/#invlid-utf8),
+as they can't be used in JSON strings.
 
 ### Transfers ###
 
