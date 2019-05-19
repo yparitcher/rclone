@@ -357,9 +357,11 @@ Google drive stores modification times accurate to 1 ms.
 
 #### Restricted filename characters
 
-Only invalid UTF-8 bytes will be replaced with a quoted representation,
-as they can't be used in JSON strings. For example, the invalid byte
-`0xFE` will be encoded as `‛FE`.
+Only Invalid UTF-8 bytes will be [replaced](/overview/#invlid-utf8),
+as they can't be used in JSON strings.
+
+In contrast to other backends, `/` can also be used in names and `.`
+or `..` are valid names.
 
 ### Revisions ###
 
