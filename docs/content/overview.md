@@ -181,6 +181,19 @@ which will be specified in the documentation for each backend.
 | /         | 0x2F  | ／           |
 | DEL       | 0x7F  | ␡           |
 
+#### Invalid UTF-8 bytes {#invalid-utf8}
+
+Some backends only support a sequence of well formed UTF-8 bytes
+as file or directory names.
+
+In this case all invalid UTF-8 bytes will be replaced with a quoted
+representation of the byte value to allow uploading a file to such a
+backend. For example, the invalid byte `0xFE` will be encoded as `‛FE`.
+
+A common source of invalid UTF-8 bytes are local filesystems, that store
+names in a different encoding than UTF-8 or UTF-16, like latin1. See the
+[local filenames](/local/#filenames) section for details.
+
 ### MIME Type ###
 
 MIME types (also known as media types) classify types of documents
