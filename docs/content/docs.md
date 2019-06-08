@@ -1043,6 +1043,9 @@ If an existing destination file has a modification time equal (within
 the computed modify window precision) to the source file's, it will be
 updated if the sizes are different.
 
+If an existing destination file is older than the source file then
+it will be updated if the size or checksum differs from the source file.
+
 On remotes which don't support mod time directly the time checked will
 be the uploaded time.  This means that if uploading to one of these
 remotes, rclone will skip any files which exist on the destination and
