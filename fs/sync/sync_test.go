@@ -959,7 +959,7 @@ func TestSyncWithUpdateOlder(t *testing.T) {
 	accounting.Stats.ResetCounters()
 	err := Sync(r.Fremote, r.Flocal, false)
 	require.NoError(t, err)
-	fstest.CheckItems(t, r.Fremote, oneO, twoF, threeO, fourF, fiveF)
+	fstest.CheckItems(t, r.Fremote, oneO, twoF, threeF, fourF, fiveF)
 }
 
 // Test with TrackRenames set
