@@ -496,10 +496,9 @@ func Run(t *testing.T, opt *Opt) {
 		TestFsListDirEmpty := func(t *testing.T) {
 			skipIfNotOk(t)
 			objs, dirs, err := walk.GetAll(context.Background(), remote, "", true, 1)
-			if !remote.Features().CanHaveEmptyDirectories {
-				if err != fs.ErrorDirNotFound {
-					require.NoError(t, err)
-				}
+			if isBucketBasedButNotRoot(remote) {
+				// BBR and not bucket so can't be empty
+				assert.Equal(t, fs.ErrorDirNotFound, err)
 			} else {
 				require.NoError(t, err)
 			}
@@ -517,15 +516,8 @@ func Run(t *testing.T, opt *Opt) {
 		// TestFsListDirNotFound tests listing the directories from an empty directory
 		TestFsListDirNotFound := func(t *testing.T) {
 			skipIfNotOk(t)
-			objs, dirs, err := walk.GetAll(context.Background(), remote, "does not exist", true, 1)
-			if !remote.Features().CanHaveEmptyDirectories {
-				if err != fs.ErrorDirNotFound {
-					assert.NoError(t, err)
-					assert.Equal(t, 0, len(objs)+len(dirs))
-				}
-			} else {
-				assert.Equal(t, fs.ErrorDirNotFound, err)
-			}
+			_, _, err := walk.GetAll(context.Background(), remote, "does not exist", true, 1)
+			assert.Equal(t, fs.ErrorDirNotFound, err)
 		}
 		t.Run("FsListDirNotFound", TestFsListDirNotFound)
 
