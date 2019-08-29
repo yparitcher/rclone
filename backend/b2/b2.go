@@ -642,6 +642,11 @@ func (f *Fs) list(ctx context.Context, bucket, directory, prefix string, addBuck
 		if err != nil {
 			return err
 		}
+		// if the response is empty & we are not listing a bucket
+		// the directory does not exist
+		if len(response.Files) == 0 && directory != "" {
+			return fs.ErrorDirNotFound
+		}
 		for i := range response.Files {
 			file := &response.Files[i]
 			// Finish if file name no longer has prefix
@@ -1288,13 +1293,9 @@ func (f *Fs) PublicLink(ctx context.Context, remote string) (link string, err er
 	}
 	_, err = f.NewObject(ctx, remote)
 	if err == fs.ErrorObjectNotFound || err == fs.ErrorNotAFile {
-		err2 := f.list(ctx, bucket, bucketPath, f.rootDirectory, f.rootBucket == "", false, 1, f.opt.Versions, false, func(remote string, object *api.File, isDirectory bool) error {
-			err = nil
-			return nil
+		err = f.list(ctx, bucket, bucketPath, f.rootDirectory, f.rootBucket == "", false, 1, f.opt.Versions, false, func(remote string, object *api.File, isDirectory bool) error {
+			return errEndList
 		})
-		if err2 != nil {
-			return "", err2
-		}
 	}
 	if err != nil {
 		return "", err
